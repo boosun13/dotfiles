@@ -64,18 +64,12 @@ brew "xcodesorg/made/xcodes" # Xcode version manager
 cask "xcodes-app"
 
 # --------------------------------------------
-# VSCode Extensions
+# VSCode Extensions (必須のみ)
 # --------------------------------------------
-vscode "anthropic.claude-code"
-vscode "github.copilot-chat"
-vscode "vscodevim.vim"
-vscode "eamodio.gitlens"
-vscode "mhutchie.git-graph"
-vscode "esbenp.prettier-vscode"
-vscode "dbaeumer.vscode-eslint"
-vscode "hashicorp.terraform"
-vscode "redhat.vscode-yaml"
-vscode "docker.docker"
-vscode "ms-azuretools.vscode-docker"
-vscode "ms-vscode-remote.remote-containers"
-vscode "streetsidesoftware.code-spell-checker"
+vscode "anthropic.claude-code"       # AI
+vscode "github.copilot-chat"         # AI
+vscode "vscodevim.vim"               # Editor
+vscode "esbenp.prettier-vscode"      # Formatter
+vscode "dbaeumer.vscode-eslint"      # Linter
+vscode "eamodio.gitlens"             # Git
+vscode "ms-vscode-remote.remote-containers"  # Dev Containers
