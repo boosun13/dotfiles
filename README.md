@@ -6,6 +6,7 @@ My personal dotfiles managed with Git.
 
 - `.zshrc` - Zsh shell configuration
 - `.gitconfig` - Git configuration
+- `.p10k.zsh` - Powerlevel10k prompt configuration
 - `config/sheldon/plugins.toml` - Zsh plugin manager configuration
 
 ## Installation
@@ -21,7 +22,8 @@ chmod +x install.sh
 ### Options
 
 ```bash
-./install.sh -f    # 確認なしで強制上書き
+./install.sh -f    # 確認なしで強制インストール
+./install.sh -u    # アンインストール（バックアップから復元可能）
 ./install.sh -h    # ヘルプを表示
 ```
 

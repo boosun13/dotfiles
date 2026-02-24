@@ -9,6 +9,7 @@ set -e
 DOTFILES_DIR="$HOME/dotfiles"
 BACKUP_DIR="$HOME/dotfiles_backup/$(date +%Y%m%d_%H%M%S)"
 FORCE=false
+UNINSTALL=false
 
 # 色付き出力
 GREEN='\033[0;32m'
@@ -33,8 +34,9 @@ usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  -f, --force    上書き確認をスキップして強制的にインストール"
-    echo "  -h, --help     このヘルプを表示"
+    echo "  -f, --force      確認をスキップして強制実行"
+    echo "  -u, --uninstall  dotfiles をアンインストール"
+    echo "  -h, --help       このヘルプを表示"
     echo ""
 }
 
@@ -43,6 +45,10 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         -f|--force)
             FORCE=true
+            shift
+            ;;
+        -u|--uninstall)
+            UNINSTALL=true
             shift
             ;;
         -h|--help)
@@ -73,6 +79,39 @@ confirm() {
             return 1
             ;;
     esac
+}
+
+# シンボリックリンクを削除する関数
+unlink_file() {
+    local dst=$1
+    local filename=$(basename "$dst")
+
+    if [[ -L "$dst" ]]; then
+        local target=$(readlink "$dst")
+        if [[ "$target" == "$DOTFILES_DIR"* ]]; then
+            if ! confirm "$filename: シンボリックリンクを削除しますか？"; then
+                warn "Skipped: $dst"
+                return 0
+            fi
+            rm "$dst"
+            info "Removed symlink: $dst"
+
+            # 最新のバックアップから復元を試みる
+            local latest_backup=$(ls -td "$HOME/dotfiles_backup"/*/ 2>/dev/null | head -1)
+            if [[ -n "$latest_backup" && -f "${latest_backup}${filename}" ]]; then
+                if confirm "$filename: バックアップから復元しますか？ (${latest_backup})"; then
+                    cp "${latest_backup}${filename}" "$dst"
+                    info "Restored from backup: $dst"
+                fi
+            fi
+        else
+            warn "Not a dotfiles symlink: $dst -> $target"
+        fi
+    elif [[ -e "$dst" ]]; then
+        warn "Not a symlink: $dst"
+    else
+        info "Not found: $dst"
+    fi
 }
 
 # シンボリックリンクを作成する関数
@@ -111,6 +150,31 @@ link_file() {
     info "Created symlink: $dst -> $src"
 }
 
+# アンインストール処理
+uninstall() {
+    echo ""
+    echo "=================================="
+    echo "  Dotfiles Uninstall Script"
+    echo "=================================="
+    echo ""
+
+    if [[ "$FORCE" == true ]]; then
+        warn "Force mode enabled - 確認なしで削除します"
+    fi
+
+    info "Starting dotfiles uninstallation..."
+    echo ""
+
+    unlink_file "$HOME/.zshrc"
+    unlink_file "$HOME/.gitconfig"
+    unlink_file "$HOME/.p10k.zsh"
+    unlink_file "$HOME/.config/sheldon"
+
+    echo ""
+    info "Uninstallation completed!"
+    echo ""
+}
+
 # メイン処理
 main() {
     echo ""
@@ -140,6 +204,11 @@ main() {
     # .gitconfig
     if [[ -f "$DOTFILES_DIR/.gitconfig" ]]; then
         link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
+    fi
+
+    # .p10k.zsh (powerlevel10k config)
+    if [[ -f "$DOTFILES_DIR/.p10k.zsh" ]]; then
+        link_file "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
     fi
 
     # sheldon (plugin manager)
@@ -182,4 +251,9 @@ main() {
     echo ""
 }
 
-main "$@"
+# 実行
+if [[ "$UNINSTALL" == true ]]; then
+    uninstall
+else
+    main
+fi

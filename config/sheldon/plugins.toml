@@ -1,5 +1,9 @@
 shell = "zsh"
 
+# プロンプトテーマ
+[plugins.powerlevel10k]
+github = "romkatv/powerlevel10k"
+
 # コマンドのシンタックスハイライト
 [plugins.zsh-syntax-highlighting]
 github = "zsh-users/zsh-syntax-highlighting"

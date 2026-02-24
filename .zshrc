@@ -3,11 +3,21 @@
 # ============================================
 
 # --------------------------------------------
+# Powerlevel10k Instant Prompt (高速起動)
+# --------------------------------------------
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# --------------------------------------------
 # Plugin Manager (sheldon)
 # --------------------------------------------
 if command -v sheldon &> /dev/null; then
     eval "$(sheldon source)"
 fi
+
+# Powerlevel10k 設定
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
 # --------------------------------------------
 # History settings
@@ -45,17 +55,6 @@ bindkey '\e\e[C' forward-word    # Option + Right (alternative)
 autoload -Uz compinit && compinit
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # 大文字小文字を区別しない
 zstyle ':completion:*' menu select                    # 補完候補をメニュー表示
-
-# --------------------------------------------
-# Prompt
-# --------------------------------------------
-autoload -Uz vcs_info
-precmd() { vcs_info }
-zstyle ':vcs_info:git:*' formats '%F{green}(%b)%f '
-setopt PROMPT_SUBST
-
-# シンプルでカラフルなプロンプト
-PROMPT='%F{cyan}%~%f ${vcs_info_msg_0_}%F{yellow}$%f '
 
 # --------------------------------------------
 # Aliases - General
