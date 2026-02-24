@@ -70,6 +70,8 @@ vscode "anthropic.claude-code"       # AI
 vscode "github.copilot-chat"         # AI
 vscode "vscodevim.vim"               # Editor
 vscode "esbenp.prettier-vscode"      # Formatter
-vscode "dbaeumer.vscode-eslint"      # Linter
+vscode "dbaeumer.vscode-eslint"      # Linter (JS/TS)
+vscode "misogi.ruby-rubocop"         # Linter (Ruby)
+vscode "sorbet.sorbet-vscode-extension"  # Ruby type checker
 vscode "eamodio.gitlens"             # Git
 vscode "ms-vscode-remote.remote-containers"  # Dev Containers
