@@ -33,6 +33,7 @@ brew "sheldon"               # Zsh plugin manager
 # Version Manager (unified)
 # --------------------------------------------
 brew "mise"                  # Polyglot version manager (replaces nvm, pyenv, rbenv)
+brew "libyaml"               # Required for Ruby (psych gem)
 
 # --------------------------------------------
 # Package Managers
@@ -61,6 +62,7 @@ brew "xcodesorg/made/xcodes" # Xcode version manager
 # --------------------------------------------
 # Cask Applications
 # --------------------------------------------
+cask "docker"                # Docker Desktop
 cask "xcodes-app"
 
 # --------------------------------------------
