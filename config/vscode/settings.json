@@ -1,0 +1,115 @@
+{
+  // ============================================
+  // Editor
+  // ============================================
+  "editor.fontSize": 14,
+  "editor.wordWrap": "on",
+  "editor.accessibilitySupport": "off",
+  "editor.minimap.enabled": false,
+  "editor.renderWhitespace": "boundary",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.linkedEditing": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  // ============================================
+  // Files
+  // ============================================
+  "files.autoSave": "afterDelay",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // ============================================
+  // Terminal
+  // ============================================
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.profiles.linux": {
+    "bash": { "path": "bash", "icon": "terminal-bash" },
+    "zsh": { "path": "zsh" },
+    "fish": { "path": "fish" },
+    "tmux": { "path": "tmux", "icon": "terminal-tmux" },
+    "pwsh": { "path": "pwsh", "icon": "terminal-powershell" }
+  },
+
+  // ============================================
+  // Git
+  // ============================================
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "diffEditor.ignoreTrimWhitespace": false,
+
+  // ============================================
+  // Language Formatters
+  // ============================================
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[graphql]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[dockercompose]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "advanced",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[github-actions-workflow]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+
+  // ============================================
+  // GitHub Copilot
+  // ============================================
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+
+  // ============================================
+  // Claude Code
+  // ============================================
+  "claudeCode.selectedModel": "default",
+  "claudeCode.preferredLocation": "panel",
+
+  // ============================================
+  // Ruby
+  // ============================================
+  "ruby.lint": {
+    "rubocop": false
+  },
+
+  // ============================================
+  // Other
+  // ============================================
+  "workbench.editor.defaultBinaryEditor": "default",
+  "accessibility.signals.noInlayHints": {
+    "sound": "off",
+    "announcement": "off"
+  },
+  "scm.showChangesSummary": false,
+  "docker.extension.enableComposeLanguageServer": false
+}

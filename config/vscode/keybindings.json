@@ -1,0 +1,12 @@
+// VSCode Keybindings
+[
+  // Terminal: Shift+Enter で改行継続
+  {
+    "key": "shift+enter",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "\\\r\n"
+    },
+    "when": "terminalFocus"
+  }
+]

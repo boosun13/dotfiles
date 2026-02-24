@@ -170,6 +170,8 @@ uninstall() {
     unlink_file "$HOME/.p10k.zsh"
     unlink_file "$HOME/.config/sheldon"
     unlink_file "$HOME/.config/nvim"
+    unlink_file "$HOME/Library/Application Support/Code/User/settings.json"
+    unlink_file "$HOME/Library/Application Support/Code/User/keybindings.json"
 
     echo ""
     info "Uninstallation completed!"
@@ -222,6 +224,18 @@ main() {
     if [[ -d "$DOTFILES_DIR/config/nvim" ]]; then
         mkdir -p "$HOME/.config"
         link_file "$DOTFILES_DIR/config/nvim" "$HOME/.config/nvim"
+    fi
+
+    # VSCode
+    local VSCODE_USER_DIR="$HOME/Library/Application Support/Code/User"
+    if [[ -d "$DOTFILES_DIR/config/vscode" ]]; then
+        mkdir -p "$VSCODE_USER_DIR"
+        if [[ -f "$DOTFILES_DIR/config/vscode/settings.json" ]]; then
+            link_file "$DOTFILES_DIR/config/vscode/settings.json" "$VSCODE_USER_DIR/settings.json"
+        fi
+        if [[ -f "$DOTFILES_DIR/config/vscode/keybindings.json" ]]; then
+            link_file "$DOTFILES_DIR/config/vscode/keybindings.json" "$VSCODE_USER_DIR/keybindings.json"
+        fi
     fi
 
     echo ""
