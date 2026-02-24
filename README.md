@@ -11,17 +11,12 @@ My personal dotfiles managed with Git.
 ## Installation
 
 ```bash
-# sheldon (plugin manager) をインストール
-brew install sheldon
-
-# dotfiles をセットアップ
 cd ~/dotfiles
 chmod +x install.sh
 ./install.sh
-
-# プラグインをダウンロード
-sheldon lock
 ```
+
+これだけで sheldon のインストールとプラグインのダウンロードも自動で行われます。
 
 ### Options
 

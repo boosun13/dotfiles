@@ -149,6 +149,25 @@ main() {
     fi
 
     echo ""
+
+    # sheldon のインストール
+    if ! command -v sheldon &> /dev/null; then
+        if command -v brew &> /dev/null; then
+            info "Installing sheldon..."
+            brew install sheldon
+        else
+            warn "Homebrew がインストールされていません"
+            warn "sheldon を手動でインストールしてください: https://sheldon.cli.rs"
+        fi
+    fi
+
+    # sheldon プラグインのダウンロード
+    if command -v sheldon &> /dev/null; then
+        info "Downloading sheldon plugins..."
+        sheldon lock
+    fi
+
+    echo ""
     info "Installation completed!"
     echo ""
 
@@ -156,24 +175,10 @@ main() {
         warn "Backup files are stored in: $BACKUP_DIR"
     fi
 
-    # sheldon のインストール確認
     echo ""
-    if ! command -v sheldon &> /dev/null; then
-        warn "sheldon がインストールされていません"
-        echo "  インストール: brew install sheldon"
-        echo ""
-    fi
-
     echo "Next steps:"
     echo "  1. Edit ~/.gitconfig to set your name and email"
-    if ! command -v sheldon &> /dev/null; then
-        echo "  2. Install sheldon: brew install sheldon"
-        echo "  3. Run 'sheldon lock' to download plugins"
-        echo "  4. Run 'source ~/.zshrc' or restart your terminal"
-    else
-        echo "  2. Run 'sheldon lock' to download plugins"
-        echo "  3. Run 'source ~/.zshrc' or restart your terminal"
-    fi
+    echo "  2. Run 'source ~/.zshrc' or restart your terminal"
     echo ""
 }
 
