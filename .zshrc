@@ -125,6 +125,15 @@ fd() {
 }
 
 # --------------------------------------------
+# fzf (fuzzy finder)
+# --------------------------------------------
+if command -v fzf &> /dev/null; then
+    source <(fzf --zsh)
+    export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+    export FZF_CTRL_R_OPTS='--sort --exact'
+fi
+
+# --------------------------------------------
 # Load local settings (if exists)
 # --------------------------------------------
 if [[ -f ~/.zshrc.local ]]; then

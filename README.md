@@ -7,6 +7,7 @@ My personal dotfiles managed with Git.
 - `.zshrc` - Zsh shell configuration
 - `.gitconfig` - Git configuration
 - `.p10k.zsh` - Powerlevel10k prompt configuration
+- `.zshrc.local.example` - Local settings template (nvm, pyenv, rbenv, pnpm)
 - `config/sheldon/plugins.toml` - Zsh plugin manager configuration
 
 ## Installation
@@ -45,13 +46,25 @@ git config --global user.email "your.email@example.com"
 ~/dotfiles/
 ├── .gitconfig              # Git settings & aliases
 ├── .zshrc                  # Zsh config (prompt, aliases, functions)
+├── .p10k.zsh               # Powerlevel10k prompt config
+├── .zshrc.local.example    # Local settings template
 ├── config/
 │   └── sheldon/
-│       └── plugins.toml    # Zsh plugins (syntax-highlighting, autosuggestions)
+│       └── plugins.toml    # Zsh plugins (powerlevel10k, syntax-highlighting, etc.)
 ├── install.sh              # Symlink installer script
 └── README.md
 ```
 
 ## Local Customization
 
-For machine-specific settings, create `~/.zshrc.local`. This file is sourced by `.zshrc` if it exists.
+マシン固有の設定は `~/.zshrc.local` に記述します（dotfiles 管理外）。
+
+```bash
+cp ~/dotfiles/.zshrc.local.example ~/.zshrc.local
+```
+
+テンプレートには以下が含まれています:
+- nvm (Node.js)
+- pyenv (Python)
+- rbenv (Ruby)
+- pnpm

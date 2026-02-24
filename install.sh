@@ -236,6 +236,14 @@ main() {
         sheldon lock
     fi
 
+    # fzf のインストール
+    if ! command -v fzf &> /dev/null; then
+        if command -v brew &> /dev/null; then
+            info "Installing fzf..."
+            brew install fzf
+        fi
+    fi
+
     echo ""
     info "Installation completed!"
     echo ""

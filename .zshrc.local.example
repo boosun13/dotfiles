@@ -1,0 +1,46 @@
+# ============================================
+# .zshrc.local - Machine-specific settings
+# ============================================
+# このファイルを ~/.zshrc.local にコピーして使用してください
+# cp ~/dotfiles/.zshrc.local.example ~/.zshrc.local
+
+# --------------------------------------------
+# Node.js (nvm)
+# --------------------------------------------
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# --------------------------------------------
+# Python (pyenv)
+# --------------------------------------------
+if command -v pyenv 1>/dev/null 2>&1; then
+    eval "$(pyenv init -)"
+fi
+
+# --------------------------------------------
+# Ruby (rbenv)
+# --------------------------------------------
+if command -v rbenv 1>/dev/null 2>&1; then
+    eval "$(rbenv init -)"
+fi
+
+# --------------------------------------------
+# pnpm
+# --------------------------------------------
+export PNPM_HOME="$HOME/Library/pnpm"
+case ":$PATH:" in
+    *":$PNPM_HOME:"*) ;;
+    *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+
+# --------------------------------------------
+# API Keys / Secrets (example)
+# --------------------------------------------
+# export GITHUB_TOKEN="your_token_here"
+# export OPENAI_API_KEY="your_key_here"
+
+# --------------------------------------------
+# Custom PATH additions
+# --------------------------------------------
+# export PATH="$HOME/bin:$PATH"
