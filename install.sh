@@ -142,6 +142,12 @@ main() {
         link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
     fi
 
+    # sheldon (plugin manager)
+    if [[ -d "$DOTFILES_DIR/config/sheldon" ]]; then
+        mkdir -p "$HOME/.config"
+        link_file "$DOTFILES_DIR/config/sheldon" "$HOME/.config/sheldon"
+    fi
+
     echo ""
     info "Installation completed!"
     echo ""
@@ -150,10 +156,24 @@ main() {
         warn "Backup files are stored in: $BACKUP_DIR"
     fi
 
+    # sheldon のインストール確認
     echo ""
+    if ! command -v sheldon &> /dev/null; then
+        warn "sheldon がインストールされていません"
+        echo "  インストール: brew install sheldon"
+        echo ""
+    fi
+
     echo "Next steps:"
     echo "  1. Edit ~/.gitconfig to set your name and email"
-    echo "  2. Run 'source ~/.zshrc' or restart your terminal"
+    if ! command -v sheldon &> /dev/null; then
+        echo "  2. Install sheldon: brew install sheldon"
+        echo "  3. Run 'sheldon lock' to download plugins"
+        echo "  4. Run 'source ~/.zshrc' or restart your terminal"
+    else
+        echo "  2. Run 'sheldon lock' to download plugins"
+        echo "  3. Run 'source ~/.zshrc' or restart your terminal"
+    fi
     echo ""
 }
 

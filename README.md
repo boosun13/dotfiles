@@ -6,13 +6,21 @@ My personal dotfiles managed with Git.
 
 - `.zshrc` - Zsh shell configuration
 - `.gitconfig` - Git configuration
+- `config/sheldon/plugins.toml` - Zsh plugin manager configuration
 
 ## Installation
 
 ```bash
+# sheldon (plugin manager) をインストール
+brew install sheldon
+
+# dotfiles をセットアップ
 cd ~/dotfiles
 chmod +x install.sh
 ./install.sh
+
+# プラグインをダウンロード
+sheldon lock
 ```
 
 ### Options
@@ -38,9 +46,12 @@ git config --global user.email "your.email@example.com"
 
 ```
 ~/dotfiles/
-├── .gitconfig    # Git settings & aliases
-├── .zshrc        # Zsh config (prompt, aliases, functions)
-├── install.sh    # Symlink installer script
+├── .gitconfig              # Git settings & aliases
+├── .zshrc                  # Zsh config (prompt, aliases, functions)
+├── config/
+│   └── sheldon/
+│       └── plugins.toml    # Zsh plugins (syntax-highlighting, autosuggestions)
+├── install.sh              # Symlink installer script
 └── README.md
 ```
 

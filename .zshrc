@@ -3,6 +3,13 @@
 # ============================================
 
 # --------------------------------------------
+# Plugin Manager (sheldon)
+# --------------------------------------------
+if command -v sheldon &> /dev/null; then
+    eval "$(sheldon source)"
+fi
+
+# --------------------------------------------
 # History settings
 # --------------------------------------------
 HISTFILE=~/.zsh_history
@@ -20,6 +27,17 @@ setopt AUTO_CD                # ディレクトリ名だけで cd
 setopt AUTO_PUSHD             # cd したら自動的に pushd
 setopt PUSHD_IGNORE_DUPS      # 重複するディレクトリは pushd しない
 setopt CORRECT                # コマンドのスペルミスを修正
+
+# 単語区切り文字の設定（/._- などで区切る）
+WORDCHARS='*?[]~=&;!#$%^(){}<>'
+
+# --------------------------------------------
+# Key bindings (Option + 矢印で単語移動)
+# --------------------------------------------
+bindkey '\e[1;3D' backward-word  # Option + Left
+bindkey '\e[1;3C' forward-word   # Option + Right
+bindkey '\e\e[D' backward-word   # Option + Left (alternative)
+bindkey '\e\e[C' forward-word    # Option + Right (alternative)
 
 # --------------------------------------------
 # Completion

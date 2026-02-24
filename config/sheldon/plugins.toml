@@ -1,0 +1,13 @@
+shell = "zsh"
+
+# コマンドのシンタックスハイライト
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"
+
+# 履歴から候補を薄く表示
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+
+# 追加の補完定義
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
