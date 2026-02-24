@@ -9,6 +9,7 @@
     editor = vim
     autocrlf = input
     ignorecase = false
+    pager = delta
 
 [color]
     ui = auto
@@ -45,3 +46,12 @@
 
 [merge]
     conflictstyle = diff3
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true          # n/N で変更箇所を移動
+    line-numbers = true      # 行番号を表示
+    side-by-side = true      # 左右分割表示
+    syntax-theme = Dracula   # シンタックステーマ
