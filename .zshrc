@@ -59,16 +59,30 @@ zstyle ':completion:*' menu select                    # 補完候補をメニュ
 # --------------------------------------------
 # Aliases - General
 # --------------------------------------------
-alias ll='ls -la'
-alias la='ls -A'
-alias l='ls -CF'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 
-# ls colors (macOS)
-export CLICOLOR=1
-export LSCOLORS=GxFxCxDxBxegedabagaced
+# eza (modern ls) or fallback to ls
+if command -v eza &> /dev/null; then
+    alias ls='eza'
+    alias ll='eza -la --git'
+    alias la='eza -a'
+    alias l='eza -F'
+    alias tree='eza --tree'
+else
+    alias ll='ls -la'
+    alias la='ls -A'
+    alias l='ls -CF'
+    export CLICOLOR=1
+    export LSCOLORS=GxFxCxDxBxegedabagaced
+fi
+
+# bat (modern cat)
+if command -v bat &> /dev/null; then
+    alias cat='bat --paging=never'
+    alias catp='bat'  # with pager
+fi
 
 # --------------------------------------------
 # Aliases - Git
@@ -114,14 +128,22 @@ mkcd() {
     mkdir -p "$1" && cd "$1"
 }
 
-# ファイルを検索
+# ファイルを検索 (fd コマンドがあればそちらを使用)
 ff() {
-    find . -type f -name "*$1*"
+    if command -v fd &> /dev/null; then
+        fd --type f "$1"
+    else
+        find . -type f -name "*$1*"
+    fi
 }
 
 # ディレクトリを検索
-fd() {
-    find . -type d -name "*$1*"
+fdir() {
+    if command -v fd &> /dev/null; then
+        fd --type d "$1"
+    else
+        find . -type d -name "*$1*"
+    fi
 }
 
 # --------------------------------------------
@@ -131,6 +153,14 @@ if command -v fzf &> /dev/null; then
     source <(fzf --zsh)
     export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
     export FZF_CTRL_R_OPTS='--sort --exact'
+fi
+
+# --------------------------------------------
+# zoxide (smarter cd)
+# --------------------------------------------
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh)"
+    alias cd='z'  # replace cd with zoxide
 fi
 
 # --------------------------------------------

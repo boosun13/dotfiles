@@ -8,6 +8,18 @@ tap "kayac/tap"
 tap "xcodesorg/made"
 
 # --------------------------------------------
+# CLI Enhancements
+# --------------------------------------------
+brew "bat"                   # cat with syntax highlighting
+brew "eza"                   # Modern ls replacement
+brew "ripgrep"               # Fast grep (rg)
+brew "fd"                    # Fast find
+brew "delta"                 # Better git diff
+brew "zoxide"                # Smarter cd
+brew "tldr"                  # Simplified man pages
+brew "tree"                  # Directory tree view
+
+# --------------------------------------------
 # Development Tools
 # --------------------------------------------
 brew "git"
