@@ -219,29 +219,36 @@ main() {
 
     echo ""
 
-    # sheldon のインストール
-    if ! command -v sheldon &> /dev/null; then
-        if command -v brew &> /dev/null; then
+    # Homebrew がある場合、必要なツールをインストール
+    if command -v brew &> /dev/null; then
+        # sheldon
+        if ! command -v sheldon &> /dev/null; then
             info "Installing sheldon..."
             brew install sheldon
-        else
-            warn "Homebrew がインストールされていません"
-            warn "sheldon を手動でインストールしてください: https://sheldon.cli.rs"
         fi
+
+        # fzf
+        if ! command -v fzf &> /dev/null; then
+            info "Installing fzf..."
+            brew install fzf
+        fi
+
+        # mise (version manager)
+        if ! command -v mise &> /dev/null; then
+            info "Installing mise..."
+            brew install mise
+        fi
+    else
+        warn "Homebrew がインストールされていません"
+        warn "手動でインストールしてください:"
+        warn "  - sheldon: https://sheldon.cli.rs"
+        warn "  - mise: https://mise.jdx.dev"
     fi
 
     # sheldon プラグインのダウンロード
     if command -v sheldon &> /dev/null; then
         info "Downloading sheldon plugins..."
         sheldon lock
-    fi
-
-    # fzf のインストール
-    if ! command -v fzf &> /dev/null; then
-        if command -v brew &> /dev/null; then
-            info "Installing fzf..."
-            brew install fzf
-        fi
     fi
 
     # .zshrc.local のテンプレートコピー（存在しない場合のみ）

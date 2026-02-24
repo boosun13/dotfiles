@@ -7,7 +7,8 @@ My personal dotfiles managed with Git.
 - `.zshrc` - Zsh shell configuration
 - `.gitconfig` - Git configuration
 - `.p10k.zsh` - Powerlevel10k prompt configuration
-- `.zshrc.local.example` - Local settings template (nvm, pyenv, rbenv, pnpm)
+- `.zshrc.local.example` - Local settings template (mise, pnpm)
+- `Brewfile` - Homebrew package manifest
 - `config/sheldon/plugins.toml` - Zsh plugin manager configuration
 
 ## Installation
@@ -48,6 +49,7 @@ git config --global user.email "your.email@example.com"
 ├── .zshrc                  # Zsh config (prompt, aliases, functions)
 ├── .p10k.zsh               # Powerlevel10k prompt config
 ├── .zshrc.local.example    # Local settings template
+├── Brewfile                # Homebrew packages
 ├── config/
 │   └── sheldon/
 │       └── plugins.toml    # Zsh plugins (powerlevel10k, syntax-highlighting, etc.)
@@ -64,7 +66,13 @@ cp ~/dotfiles/.zshrc.local.example ~/.zshrc.local
 ```
 
 テンプレートには以下が含まれています:
-- nvm (Node.js)
-- pyenv (Python)
-- rbenv (Ruby)
+- mise (Node.js, Python, Ruby などの統一バージョンマネージャー)
 - pnpm
+
+## Homebrew Packages
+
+```bash
+brew bundle --file=~/dotfiles/Brewfile
+```
+
+Brewfile には開発に必要なツールが含まれています。

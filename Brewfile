@@ -1,0 +1,68 @@
+# ============================================
+# Brewfile - Homebrew packages
+# ============================================
+# Usage: brew bundle --file=~/dotfiles/Brewfile
+
+# Taps
+tap "kayac/tap"
+tap "xcodesorg/made"
+
+# --------------------------------------------
+# Development Tools
+# --------------------------------------------
+brew "git"
+brew "gh"                    # GitHub CLI
+brew "jq"                    # JSON processor
+brew "fzf"                   # Fuzzy finder
+brew "sheldon"               # Zsh plugin manager
+
+# --------------------------------------------
+# Version Manager (unified)
+# --------------------------------------------
+brew "mise"                  # Polyglot version manager (replaces nvm, pyenv, rbenv)
+
+# --------------------------------------------
+# Package Managers
+# --------------------------------------------
+brew "pnpm"                  # Fast Node.js package manager
+brew "yarn"                  # Node.js package manager
+
+# --------------------------------------------
+# Container & Infrastructure
+# --------------------------------------------
+brew "docker-compose"
+brew "kayac/tap/ecspresso"   # ECS deployment tool
+
+# --------------------------------------------
+# Code Quality
+# --------------------------------------------
+brew "semgrep"               # Static analysis
+
+# --------------------------------------------
+# Other Tools
+# --------------------------------------------
+brew "watchman"              # File watching service
+brew "zbar"                  # Barcode reader
+brew "xcodesorg/made/xcodes" # Xcode version manager
+
+# --------------------------------------------
+# Cask Applications
+# --------------------------------------------
+cask "xcodes-app"
+
+# --------------------------------------------
+# VSCode Extensions
+# --------------------------------------------
+vscode "anthropic.claude-code"
+vscode "github.copilot-chat"
+vscode "vscodevim.vim"
+vscode "eamodio.gitlens"
+vscode "mhutchie.git-graph"
+vscode "esbenp.prettier-vscode"
+vscode "dbaeumer.vscode-eslint"
+vscode "hashicorp.terraform"
+vscode "redhat.vscode-yaml"
+vscode "docker.docker"
+vscode "ms-azuretools.vscode-docker"
+vscode "ms-vscode-remote.remote-containers"
+vscode "streetsidesoftware.code-spell-checker"

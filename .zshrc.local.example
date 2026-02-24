@@ -5,25 +5,20 @@
 # cp ~/dotfiles/.zshrc.local.example ~/.zshrc.local
 
 # --------------------------------------------
-# Node.js (nvm)
+# mise (polyglot version manager)
 # --------------------------------------------
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-
-# --------------------------------------------
-# Python (pyenv)
-# --------------------------------------------
-if command -v pyenv 1>/dev/null 2>&1; then
-    eval "$(pyenv init -)"
+# Node.js, Python, Ruby などを統一管理
+# https://mise.jdx.dev/
+if command -v mise 1>/dev/null 2>&1; then
+    eval "$(mise activate zsh)"
 fi
 
-# --------------------------------------------
-# Ruby (rbenv)
-# --------------------------------------------
-if command -v rbenv 1>/dev/null 2>&1; then
-    eval "$(rbenv init -)"
-fi
+# Usage:
+#   mise use node@20      # Node.js 20をインストール＆有効化
+#   mise use python@3.12  # Python 3.12をインストール＆有効化
+#   mise use ruby@3.3     # Ruby 3.3をインストール＆有効化
+#   mise list             # インストール済みバージョン一覧
+#   mise current          # 現在のバージョン表示
 
 # --------------------------------------------
 # pnpm
