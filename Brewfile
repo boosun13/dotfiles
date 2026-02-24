@@ -67,7 +67,6 @@ cask "xcodes-app"
 # VSCode Extensions (必須のみ)
 # --------------------------------------------
 vscode "anthropic.claude-code"       # AI
-vscode "github.copilot-chat"         # AI
 vscode "vscodevim.vim"               # Editor
 vscode "esbenp.prettier-vscode"      # Formatter
 vscode "dbaeumer.vscode-eslint"      # Linter (JS/TS)
