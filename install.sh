@@ -244,6 +244,12 @@ main() {
         fi
     fi
 
+    # .zshrc.local のテンプレートコピー（存在しない場合のみ）
+    if [[ ! -f "$HOME/.zshrc.local" ]] && [[ -f "$DOTFILES_DIR/.zshrc.local.example" ]]; then
+        cp "$DOTFILES_DIR/.zshrc.local.example" "$HOME/.zshrc.local"
+        info "Created ~/.zshrc.local from template"
+    fi
+
     echo ""
     info "Installation completed!"
     echo ""
