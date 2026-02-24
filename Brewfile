@@ -22,6 +22,7 @@ brew "tree"                  # Directory tree view
 # --------------------------------------------
 # Development Tools
 # --------------------------------------------
+brew "neovim"                # Modern Vim
 brew "git"
 brew "gh"                    # GitHub CLI
 brew "jq"                    # JSON processor

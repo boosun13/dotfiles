@@ -169,6 +169,7 @@ uninstall() {
     unlink_file "$HOME/.gitconfig"
     unlink_file "$HOME/.p10k.zsh"
     unlink_file "$HOME/.config/sheldon"
+    unlink_file "$HOME/.config/nvim"
 
     echo ""
     info "Uninstallation completed!"
@@ -215,6 +216,12 @@ main() {
     if [[ -d "$DOTFILES_DIR/config/sheldon" ]]; then
         mkdir -p "$HOME/.config"
         link_file "$DOTFILES_DIR/config/sheldon" "$HOME/.config/sheldon"
+    fi
+
+    # neovim
+    if [[ -d "$DOTFILES_DIR/config/nvim" ]]; then
+        mkdir -p "$HOME/.config"
+        link_file "$DOTFILES_DIR/config/nvim" "$HOME/.config/nvim"
     fi
 
     echo ""
