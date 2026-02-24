@@ -26,6 +26,7 @@
   // ============================================
   // Terminal
   // ============================================
+  "terminal.integrated.fontSize": 16,
   "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.profiles.linux": {
     "bash": { "path": "bash", "icon": "terminal-bash" },
