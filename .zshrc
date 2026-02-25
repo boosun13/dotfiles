@@ -110,6 +110,9 @@ alias c='code'
 alias py='python3'
 alias pip='pip3'
 
+# mise経由でbundleを実行
+alias bundle='mise exec -- bundle'
+
 # --------------------------------------------
 # Environment variables
 # --------------------------------------------
@@ -169,3 +172,4 @@ fi
 if [[ -f ~/.zshrc.local ]]; then
     source ~/.zshrc.local
 fi
+eval "$(mise activate zsh)"

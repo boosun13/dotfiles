@@ -8,5 +8,23 @@
       "text": "\\\r\n"
     },
     "when": "terminalFocus"
+  },
+  // Terminal: Option + → で単語移動（右）
+  {
+    "key": "alt+right",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "\u001b\u001b[C"
+    },
+    "when": "terminalFocus"
+  },
+  // Terminal: Option + ← で単語移動（左）
+  {
+    "key": "alt+left",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "\u001b\u001b[D"
+    },
+    "when": "terminalFocus"
   }
 ]

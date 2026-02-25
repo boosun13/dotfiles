@@ -13,7 +13,7 @@
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit",
-    "source.organizeImports": "explicit"
+    "source.organizeImports": "explicit",
   },
 
   // ============================================
@@ -26,14 +26,16 @@
   // ============================================
   // Terminal
   // ============================================
-  "terminal.integrated.fontSize": 16,
   "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.macOptionIsMeta": false,
+  "terminal.integrated.macOptionClickForcesSelection": false,
+  "terminal.integrated.sendKeybindingsToShell": false,
   "terminal.integrated.profiles.linux": {
     "bash": { "path": "bash", "icon": "terminal-bash" },
     "zsh": { "path": "zsh" },
     "fish": { "path": "fish" },
     "tmux": { "path": "tmux", "icon": "terminal-tmux" },
-    "pwsh": { "path": "pwsh", "icon": "terminal-powershell" }
+    "pwsh": { "path": "pwsh", "icon": "terminal-powershell" },
   },
 
   // ============================================
@@ -47,22 +49,22 @@
   // Language Formatters
   // ============================================
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[graphql]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[dockercompose]": {
     "editor.insertSpaces": true,
@@ -71,12 +73,12 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": true
+      "strings": true,
     },
-    "editor.defaultFormatter": "redhat.vscode-yaml"
+    "editor.defaultFormatter": "redhat.vscode-yaml",
   },
   "[github-actions-workflow]": {
-    "editor.defaultFormatter": "redhat.vscode-yaml"
+    "editor.defaultFormatter": "redhat.vscode-yaml",
   },
 
   // ============================================
@@ -86,21 +88,21 @@
     "*": true,
     "plaintext": false,
     "markdown": false,
-    "scminput": false
+    "scminput": false,
   },
   "github.copilot.editor.enableAutoCompletions": true,
 
   // ============================================
   // Claude Code
   // ============================================
-  "claudeCode.selectedModel": "default",
+  "claudeCode.selectedModel": "sonnet",
   "claudeCode.preferredLocation": "panel",
 
   // ============================================
   // Ruby
   // ============================================
   "ruby.lint": {
-    "rubocop": false
+    "rubocop": false,
   },
 
   // ============================================
@@ -109,8 +111,53 @@
   "workbench.editor.defaultBinaryEditor": "default",
   "accessibility.signals.noInlayHints": {
     "sound": "off",
-    "announcement": "off"
+    "announcement": "off",
   },
   "scm.showChangesSummary": false,
-  "docker.extension.enableComposeLanguageServer": false
+  "docker.extension.enableComposeLanguageServer": false,
+  "ruby.rubocop.executePath": "/Users/yoshimasa_shuda/.local/share/mise/installs/ruby/3.2.8/bin/",
+  "sorbet.lspConfigs": [
+    {
+      "id": "curon-custom",
+      "name": "Sorbet",
+      "description": "Curon Customized Sorbet Ruby IDE",
+      "cwd": "${workspaceFolder}",
+      "command": [
+        "/opt/homebrew/bin/mise",
+        "exec",
+        "--",
+        "bundle",
+        "exec",
+        "srb",
+        "typecheck",
+        "--typed=true",
+        "--lsp",
+      ],
+    },
+  ],
+  "mssql.connectionGroups": [
+    {
+      "name": "ROOT",
+      "id": "ROOT",
+    },
+  ],
+  "sorbet.userLspConfigs": [
+    {
+      "id": "curon-custom",
+      "name": "Sorbet",
+      "description": "Curon Customized Sorbet Ruby IDE",
+      "cwd": "${workspaceFolder}",
+      "command": [
+        "/opt/homebrew/bin/mise",
+        "exec",
+        "--",
+        "bundle",
+        "exec",
+        "srb",
+        "typecheck",
+        "--typed=true",
+        "--lsp",
+      ],
+    },
+  ],
 }
