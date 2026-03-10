@@ -95,7 +95,7 @@
   // ============================================
   // Claude Code
   // ============================================
-  "claudeCode.selectedModel": "sonnet",
+  "claudeCode.selectedModel": "opus",
   "claudeCode.preferredLocation": "panel",
 
   // ============================================
@@ -160,4 +160,10 @@
       ],
     },
   ],
+  "githubPullRequests.pullBranch": "never",
+  "atlascode.jira.lastCreatePreSelectedValues": {
+    "siteId": "0efc68ec-1274-4ec1-a1be-4df6a1ede724",
+    "projectKey": "ADPP",
+    "issueTypeId": "atlascodeempty",
+  },
 }
