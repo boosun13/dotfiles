@@ -52,6 +52,10 @@ chmod +x install.sh
 
 `.devcontainer/devcontainer.json` で、同一アカウント(`boosun13/*`)の全リポジトリへ `contents: write` を付与しています。Codespace 作成時に権限の承認が求められ、変更は**新しく作る Codespace** から有効になります。
 
+GitHub の dotfiles 機能に対応しており、Codespace 作成時に `install.sh` が自動実行されます。
+対話できない環境（`CODESPACES=true` または stdin が TTY でない場合）では自動的に `-f` 相当で動作し、既存ファイルはバックアップされます。
+Codespaces が認証設定を持つ `~/.gitconfig` は上書きしません。
+
 ## Manual Setup
 
 After installation, edit `.gitconfig` to set your Git user:

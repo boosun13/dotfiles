@@ -63,6 +63,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Codespaces など対話できない環境では確認をスキップ（dotfiles 自動実行時は stdin が TTY でない）
+if [[ "$FORCE" != true ]] && { [[ "${CODESPACES:-}" == "true" ]] || [[ ! -t 0 ]]; }; then
+    FORCE=true
+fi
+
 # OS 判定
 case "$(uname -s)" in
     Darwin) OS="macos" ;;
@@ -229,8 +234,10 @@ main() {
         link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
     fi
 
-    # .gitconfig
-    if [[ -f "$DOTFILES_DIR/.gitconfig" ]]; then
+    # .gitconfig (Codespaces は認証用の credential helper を .gitconfig に持つため上書きしない)
+    if [[ "${CODESPACES:-}" == "true" ]]; then
+        warn "Codespaces のため .gitconfig はスキップします"
+    elif [[ -f "$DOTFILES_DIR/.gitconfig" ]]; then
         link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
     fi
 
