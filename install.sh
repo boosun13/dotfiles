@@ -323,6 +323,22 @@ main() {
         fi
     done
 
+    # ログインシェルを zsh にする（Linux のみ。既に zsh なら何もしない）
+    if [[ "$(uname -s)" == "Linux" ]] && command -v zsh &> /dev/null; then
+        zsh_path="$(command -v zsh)"
+        current_shell="$(getent passwd "$(id -un)" | cut -d: -f7)"
+        if [[ "$current_shell" != "$zsh_path" ]]; then
+            info "ログインシェルを zsh に変更します..."
+            if [[ $EUID -eq 0 ]]; then
+                chsh -s "$zsh_path" "$(id -un)" || warn "chsh に失敗しました"
+            elif command -v sudo &> /dev/null && sudo -n true 2>/dev/null; then
+                sudo chsh -s "$zsh_path" "$(id -un)" || warn "chsh に失敗しました"
+            else
+                warn "ログインシェルを変更できませんでした。手動で実行してください: chsh -s $zsh_path"
+            fi
+        fi
+    fi
+
     install_tool() {
         local name=$1
         local installer=$2
