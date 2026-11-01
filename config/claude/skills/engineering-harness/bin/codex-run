@@ -1,15 +1,43 @@
 #!/usr/bin/env bash
 # 使い方: echo "指示" | bin/codex-run <astra|sol|terra|luna> [effort=medium] [sandbox=read-only|workspace-write]
+#
+# cmux の中で動いていれば、段階ごとの cmux タブ（例: codex-sol-medium-ro）の Codex に送り、回答を受け取る。
+# タブはプロセスが残る限り使い回し、依頼ごとに /new で会話を新しくする。同じタブへの同時依頼は順番待ち。
+# cmux が無い（または codex-cmux スキルが無い）環境では、従来どおり codex exec で毎回起動する。
+# CODEX_RUN_MODE=exec を指定すると cmux があっても codex exec を使う。
 set -euo pipefail
-case "${1:?tier required: astra|sol|terra|luna}" in
+TIER="${1:?tier required: astra|sol|terra|luna}"
+case "$TIER" in
   astra) M=gpt-6-astra ;;
   sol)   M=gpt-6.1-sol ;;
   terra) M=gpt-5.6-terra ;;
   luna)  M=gpt-6-luna ;;
-  *) echo "unknown tier: $1" >&2; exit 2 ;;
+  *) echo "unknown tier: $TIER" >&2; exit 2 ;;
 esac
 EFFORT="${2:-medium}"; SANDBOX="${3:-read-only}"
+PROMPT="$(cat)"
+
+CODEX_CMUX="$HOME/.claude/skills/codex-cmux/scripts/codex-cmux"
+if [[ "${CODEX_RUN_MODE:-auto}" != "exec" && -n "${CMUX_TUI_SOCKET:-}" ]] \
+   && command -v cmux &> /dev/null && [[ -x "$CODEX_CMUX" ]]; then
+  case "$SANDBOX" in read-only) SB=ro ;; workspace-write) SB=rw ;; *) SB="$SANDBOX" ;; esac
+  # パイプにすると exec がサブシェルで動き下の codex exec まで走るので、here-string で渡す
+  exec "$CODEX_CMUX" ask --fresh \
+    --session "codex-$TIER-$EFFORT-$SB" \
+    --codex-args "-m $M -c model_reasoning_effort=\"$EFFORT\" -s $SANDBOX -a never" \
+    --timeout "${CODEX_RUN_TIMEOUT:-1800}" <<< "$PROMPT"
+fi
+
+# node_modules/.bin にある npm の同名パッケージ (codex) を避けて OpenAI Codex を使う
+CODEX=""
+IFS=: read -ra DIRS <<< "$PATH"
+for d in "${DIRS[@]}"; do
+  [[ "$d" == *node_modules* ]] && continue
+  if [[ -x "$d/codex" ]]; then CODEX="$d/codex"; break; fi
+done
+CODEX="${CODEX:-codex}"
+
 OUT="$(mktemp)"
-codex exec --skip-git-repo-check -m "$M" -c "model_reasoning_effort=\"$EFFORT\"" \
+printf '%s' "$PROMPT" | "$CODEX" exec --skip-git-repo-check -m "$M" -c "model_reasoning_effort=\"$EFFORT\"" \
   -s "$SANDBOX" -o "$OUT" - >/dev/null 2>"$OUT.err" || { cat "$OUT.err" >&2; exit 1; }
 cat "$OUT"; rm -f "$OUT" "$OUT.err"

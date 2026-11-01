@@ -61,5 +61,6 @@ description: ソフトウェアエンジニアリング（設計・実装・バ�
 ## ルール
 - 同じファイルを複数の担当が同時に編集しない。担当ごとにファイル境界を分ける。
 - 外部モデル(codex/gemini)の出力は鵜呑みにせず、採用前に verifier か自分で確認する。
+- codex 系エージェントが使う `bin/codex-run` は、cmux の中では段階ごとの cmux タブ（例: `codex-sol-medium-rw`）の Codex に送り、cmux が無ければ `codex exec` で起動する。cmux 上ではタブで作業の様子を見られる。強制的に exec にするなら `CODEX_RUN_MODE=exec`。
 - 作業ログや中間成果物は `./.harness-runs/<日付>-<題名>/` に置く。
 - git の commit/push は利用者の指示があるまで行わない。

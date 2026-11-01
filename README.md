@@ -13,6 +13,7 @@ My personal dotfiles managed with Git.
 - `config/claude/` - Claude Code 設定 (`settings.json`, `CLAUDE.md`) → `~/.claude/`
 - `config/claude/agents/` - エージェントチーム用サブエージェント10体 → `~/.claude/agents/`
 - `config/claude/skills/engineering-harness/` - エンジニアリングハーネス `/engineering-harness` スキル（教訓 `lessons.md` を含む。オーケストレーター指示・手札名鑑・`codex-run` / `agy-run` ラッパー）→ `~/.claude/skills/engineering-harness`。codex / agy が必要
+- `config/claude/skills/codex-cmux/` - cmux 上の Codex メインセッションに指示を送り回答を受け取る `/codex-cmux` スキル（Codex が無ければ Claude の右に分割ペインを開いて起動）→ `~/.claude/skills/codex-cmux`。cmux / codex が必要
 - `config/codex/` - Codex CLI 設定 (`config.toml`, `AGENTS.md`) → `~/.codex/`。`AGENTS.md` は `CLAUDE.md` と共通
 
 ## Supported OS

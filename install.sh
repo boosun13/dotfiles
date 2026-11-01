@@ -198,6 +198,7 @@ uninstall() {
         unlink_file "$HOME/.claude/agents/$(basename "$f")"
     done
     unlink_file "$HOME/.claude/skills/engineering-harness"
+    unlink_file "$HOME/.claude/skills/codex-cmux"
     unlink_file "$HOME/.codex/config.toml"
     unlink_file "$HOME/.codex/AGENTS.md"
     unlink_file "$(vscode_user_dir)/settings.json"
@@ -290,6 +291,11 @@ main() {
                 rm "$old" && info "Removed old symlink: $old"
             fi
             link_file "$DOTFILES_DIR/config/claude/skills/engineering-harness" "$HOME/.claude/skills/engineering-harness"
+        fi
+        # cmux 上の Codex メインセッションと対話する /codex-cmux スキル
+        if [[ -d "$DOTFILES_DIR/config/claude/skills/codex-cmux" ]]; then
+            mkdir -p "$HOME/.claude/skills"
+            link_file "$DOTFILES_DIR/config/claude/skills/codex-cmux" "$HOME/.claude/skills/codex-cmux"
         fi
     fi
 

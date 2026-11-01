@@ -1,0 +1,291 @@
+#!/usr/bin/env python3
+"""cmux 上の Codex メインセッションと対話する。
+
+  codex-cmux find          Codex が動いているターミナル ID を表示（無ければ終了コード 1）
+  codex-cmux ensure        Codex を探し、無ければ新しいタブを開いて起動する
+  codex-cmux ask "質問"    Codex に送信し、最終回答を標準出力に出す
+      --timeout <秒>       回答待ちの上限（既定 900）
+      --no-launch          Codex が無いときに起動しない
+      --session <名前>     メインではなく、この名前のタブの Codex を使う（無ければ作る）
+      --codex-args "<引数>" 起動時に Codex へ渡す引数（--session と併用。例: "-m gpt-6.1-sol -s read-only"）
+      --fresh              送信前に /new で新しい会話にする
+  同じタブへの同時依頼はロックで順番待ちになる。
+
+回答は Codex のセッション記録 (~/.codex/sessions/**/*.jsonl) の
+task_complete イベントから取得する（画面の表示範囲に依存しない）。
+"""
+import argparse
+import datetime as dt
+import fcntl
+import glob
+import json
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import time
+
+SESSIONS = os.path.expanduser("~/.codex/sessions")
+READY_MARKERS = ("Ask Codex", "for shortcuts")
+MAIN_TAB = "Codex"
+SESSION_PREFIX = "codex-"  # ハーネス用タブ（codex-sol など）はメイン扱いしない
+LOCK_DIR = os.path.expanduser("~/.cache/codex-cmux")
+
+
+def cmux(*args, json_out=True):
+    cmd = ["cmux"] + (["--json"] if json_out else []) + list(args)
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        raise RuntimeError(f"{' '.join(cmd)} failed: {r.stderr.strip() or r.stdout.strip()}")
+    return json.loads(r.stdout) if json_out and r.stdout.strip() else r.stdout
+
+
+def descendants(pid):
+    out, stack = [], [pid]
+    while stack:
+        p = stack.pop()
+        try:
+            kids = subprocess.run(["pgrep", "-P", str(p)], capture_output=True, text=True).stdout.split()
+        except FileNotFoundError:
+            kids = []
+        for k in kids:
+            out.append(int(k))
+            stack.append(int(k))
+    return out
+
+
+def cmdline(pid):
+    try:
+        with open(f"/proc/{pid}/cmdline", "rb") as f:
+            return f.read().replace(b"\0", b" ").decode(errors="replace")
+    except OSError:
+        return ""
+
+
+def is_codex_terminal(term_id):
+    try:
+        proc = cmux("terminal", term_id, "process", "show")
+    except RuntimeError:
+        return False
+    pids = [proc.get("pid")] + descendants(proc.get("pid")) if proc.get("pid") else []
+    return any("@openai/codex" in cmdline(p) for p in pids)
+
+
+def tab_names():
+    """terminal_id -> タブ名"""
+    names = {}
+    for tab in cmux("tab", "list"):
+        if tab.get("content_kind") == "terminal":
+            names[tab.get("content_id")] = tab.get("name") or ""
+    return names
+
+
+def find_codex(session=None):
+    me = os.environ.get("CMUX_TUI_TERMINAL_ID")
+    names = tab_names()
+    for t in cmux("terminal", "list"):
+        # タブに表示されていないターミナル（タブを閉じても残ったもの）は対象外
+        if not t.get("running") or t["id"] == me or t["id"] not in names:
+            continue
+        name = names.get(t["id"], "")
+        if session is not None and name != session:
+            continue
+        if session is None and name.startswith(SESSION_PREFIX):
+            continue
+        if is_codex_terminal(t["id"]):
+            return t["id"]
+    return None
+
+
+def real_codex_bin():
+    """node_modules/.bin の同名パッケージ (npm 'codex') を避けて OpenAI Codex を探す。"""
+    for d in os.environ.get("PATH", "").split(os.pathsep):
+        if "node_modules" in d:
+            continue
+        p = os.path.join(d, "codex")
+        if os.access(p, os.X_OK) and "@openai/codex" in os.path.realpath(p):
+            return p
+    for p in glob.glob(os.path.expanduser("~/nvm/*/bin/codex")) + glob.glob("/usr/local/share/nvm/versions/node/*/bin/codex"):
+        if "@openai/codex" in os.path.realpath(p):
+            return p
+    found = shutil.which("codex")
+    if found and "@openai/codex" in os.path.realpath(found):
+        return found
+    raise RuntimeError("OpenAI Codex CLI が見つかりません")
+
+
+def screen_text(term_id):
+    return cmux("terminal", term_id, "screen", "read").get("text", "")
+
+
+def pane_of(term_id):
+    for tab in cmux("tab", "list"):
+        if tab.get("content_id") == term_id:
+            return tab.get("pane_id")
+    return None
+
+
+def open_terminal(name):
+    """Codex を置くターミナルを開く。
+    メイン: 自分 (Claude) のペインを右に分割した新しいペイン。
+    ハーネス用: メイン Codex のペインにタブとして追加（メインが無ければ右に分割）。
+    いずれも失敗したら従来どおり新しいタブ。"""
+    tries = []
+    if name != MAIN_TAB:
+        main = find_codex()
+        main_pane = pane_of(main) if main else None
+        if main_pane:
+            tries.append(("tab", "create", "terminal", "--pane", main_pane))
+    me = os.environ.get("CMUX_TUI_TERMINAL_ID")
+    my_pane = pane_of(me) if me else None
+    if my_pane:
+        tries.append(("pane", my_pane, "split", "--right"))
+    tries.append(("tab", "create", "terminal"))
+    last = None
+    for args in tries:
+        try:
+            return cmux(*args)["value"]
+        except (RuntimeError, KeyError) as e:
+            last = e
+    raise RuntimeError(f"Codex 用のターミナルを開けませんでした: {last}")
+
+
+def launch_codex(cwd, name=MAIN_TAB, codex_args=""):
+    res = open_terminal(name)
+    term, tab = res["terminal_id"], res["tab_id"]
+    try:
+        cmux("tab", tab, "rename", "--name", name)
+    except RuntimeError:
+        pass
+    time.sleep(1.0)  # シェルのプロンプトを待つ
+    cmd = "cd " + shlex.quote(cwd) + " && " + " ".join([shlex.quote(real_codex_bin())] + shlex.split(codex_args))
+    cmux("terminal", term, "write", "--text", cmd + "\r")
+    deadline = time.time() + 90
+    while time.time() < deadline:
+        time.sleep(1.5)
+        text = screen_text(term)
+        if any(m in text for m in READY_MARKERS):
+            return term
+    sys.stderr.write("Codex の起動を確認できませんでした（信頼確認などの入力待ちかもしれません）。画面:\n")
+    sys.stderr.write(screen_text(term)[-1500:] + "\n")
+    sys.exit(2)
+
+
+def ensure(launch=True, session=None, codex_args=""):
+    t = find_codex(session)
+    if t:
+        return t
+    if not launch:
+        sys.stderr.write("Codex のセッションが見つかりません\n")
+        sys.exit(1)
+    name = session or MAIN_TAB
+    sys.stderr.write(f"Codex が見つからないため「{name}」を起動します\n")
+    return launch_codex(os.getcwd(), name, codex_args)
+
+
+def wait_ready(term, timeout=30):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if any(m in screen_text(term) for m in READY_MARKERS):
+            return True
+        time.sleep(0.5)
+    return False
+
+
+def parse_ts(s):
+    return dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+
+
+def wait_answer(message, t0, timeout):
+    needle = " ".join(message.split())[:40]
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        time.sleep(2)
+        files = [f for f in glob.glob(os.path.join(SESSIONS, "**", "*.jsonl"), recursive=True)
+                 if os.path.getmtime(f) >= t0 - 1]
+        for f in files:
+            seen_user = False
+            with open(f, encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    try:
+                        ev = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if parse_ts(ev.get("timestamp", "1970-01-01T00:00:00Z")) < t0 - 1:
+                        continue
+                    p = ev.get("payload", {})
+                    if ev.get("type") == "response_item" and p.get("type") == "message" and p.get("role") == "user":
+                        text = " ".join(c.get("text", "") for c in p.get("content", []) if isinstance(c, dict))
+                        if needle in " ".join(text.split()):
+                            seen_user = True
+                    elif seen_user and ev.get("type") == "event_msg" and p.get("type") == "task_complete":
+                        return p.get("last_agent_message") or ""
+    raise TimeoutError(f"{timeout} 秒以内に Codex の回答が完了しませんでした")
+
+
+def ask(message, timeout, launch, session=None, codex_args="", fresh=False):
+    os.makedirs(LOCK_DIR, exist_ok=True)
+    lock = open(os.path.join(LOCK_DIR, (session or MAIN_TAB) + ".lock"), "w")
+    fcntl.flock(lock, fcntl.LOCK_EX)  # 同じタブへの依頼は順番に処理する
+    term = ensure(launch, session, codex_args)
+    if not wait_ready(term):
+        raise RuntimeError("Codex が入力待ちになっていません（作業中か確認待ちの可能性）。"
+                           f"cmux terminal {term} screen read で確認してください")
+    if fresh:
+        cmux("terminal", term, "write", "--text", "/new")
+        time.sleep(0.5)
+        cmux("terminal", term, "write", "--text", "\r")
+        # Git リポジトリ内では「どこで新しい会話を始めるか」を聞かれるので既定 (1. 現在の worktree) を選ぶ
+        deadline = time.time() + 15
+        while time.time() < deadline:
+            time.sleep(0.7)
+            text = screen_text(term)
+            if "Where should the new conversation run" in text:
+                cmux("terminal", term, "write", "--text", "\r")
+                continue
+            if any(m in text for m in READY_MARKERS):
+                break
+        time.sleep(1.0)  # 新しい会話の初期化を待つ（直後の貼り付けが落ちないように）
+    t0 = time.time()
+    # bracketed paste で送ると改行を含む文も 1 メッセージとして入る
+    cmux("terminal", term, "write", "--text", "\x1b[200~" + message + "\x1b[201~")
+    time.sleep(0.5)
+    cmux("terminal", term, "write", "--text", "\r")
+    print(wait_answer(message, t0, timeout))
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("find")
+    sub.add_parser("ensure")
+    a = sub.add_parser("ask")
+    a.add_argument("message", nargs="?", help="省略時は標準入力から読む")
+    a.add_argument("--timeout", type=int, default=900)
+    a.add_argument("--no-launch", action="store_true")
+    a.add_argument("--session")
+    a.add_argument("--codex-args", default="")
+    a.add_argument("--fresh", action="store_true")
+    args = ap.parse_args()
+
+    if args.cmd == "find":
+        t = find_codex()
+        if not t:
+            sys.exit(1)
+        print(t)
+    elif args.cmd == "ensure":
+        print(ensure(True))
+    else:
+        msg = args.message if args.message is not None else sys.stdin.read()
+        if not msg.strip():
+            ap.error("メッセージが空です")
+        try:
+            ask(msg.strip(), args.timeout, not args.no_launch, args.session, args.codex_args, args.fresh)
+        except (RuntimeError, TimeoutError) as e:
+            sys.stderr.write(f"{e}\n")
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
