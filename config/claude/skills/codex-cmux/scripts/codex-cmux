@@ -13,6 +13,9 @@
 
 回答は Codex のセッション記録 (~/.codex/sessions/**/*.jsonl) の
 task_complete イベントから取得する（画面の表示範囲に依存しない）。
+
+cmux TUI（CMUX_TUI_SOCKET）と macOS の cmux アプリ（CMUX_SOCKET_PATH）の両方に対応する。
+ターミナル ID は TUI ではターミナル ID、アプリでは surface の UUID。
 """
 import argparse
 import datetime as dt
@@ -31,10 +34,13 @@ READY_MARKERS = ("Ask Codex", "for shortcuts")
 MAIN_TAB = "Codex"
 SESSION_PREFIX = "codex-"  # ハーネス用タブ（codex-sol など）はメイン扱いしない
 LOCK_DIR = os.path.expanduser("~/.cache/codex-cmux")
+# macOS の cmux アプリは tab / terminal サブコマンドを持たず、surface 単位の別 CLI になっている
+APP = not os.environ.get("CMUX_TUI_SOCKET") and bool(os.environ.get("CMUX_SOCKET_PATH"))
+CMUX_BIN = shutil.which("cmux") or os.environ.get("CMUX_BUNDLED_CLI_PATH") or "cmux"
 
 
 def cmux(*args, json_out=True):
-    cmd = ["cmux"] + (["--json"] if json_out else []) + list(args)
+    cmd = [CMUX_BIN] + (["--json"] if json_out else []) + (["--id-format", "uuids"] if APP else []) + list(args)
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         raise RuntimeError(f"{' '.join(cmd)} failed: {r.stderr.strip() or r.stdout.strip()}")
@@ -63,7 +69,29 @@ def cmdline(pid):
         return ""
 
 
+def app_terminals():
+    """surface UUID -> {name, pane, tty}（アプリ版。ターミナルの surface だけ）"""
+    out = {}
+    for w in cmux("tree", "--all")["windows"]:
+        for ws in w["workspaces"]:
+            for pane in ws["panes"]:
+                for sf in pane["surfaces"]:
+                    if sf.get("type") == "terminal":
+                        out[sf["id"]] = {"name": sf.get("title") or "", "pane": pane["id"], "tty": sf.get("tty")}
+    return out
+
+
+def my_terminal():
+    return os.environ.get("CMUX_SURFACE_ID" if APP else "CMUX_TUI_TERMINAL_ID")
+
+
 def is_codex_terminal(term_id):
+    if APP:
+        tty = app_terminals().get(term_id, {}).get("tty")
+        if not tty:
+            return False
+        ps = subprocess.run(["ps", "-t", tty, "-o", "command="], capture_output=True, text=True).stdout
+        return "@openai/codex" in ps
     try:
         proc = cmux("terminal", term_id, "process", "show")
     except RuntimeError:
@@ -81,20 +109,25 @@ def tab_names():
     return names
 
 
-def find_codex(session=None):
-    me = os.environ.get("CMUX_TUI_TERMINAL_ID")
+def candidate_terminals():
+    """(terminal_id, タブ名) の一覧。自分自身は除く。"""
+    me = my_terminal()
+    if APP:
+        return [(i, t["name"]) for i, t in app_terminals().items() if i != me]
     names = tab_names()
-    for t in cmux("terminal", "list"):
-        # タブに表示されていないターミナル（タブを閉じても残ったもの）は対象外
-        if not t.get("running") or t["id"] == me or t["id"] not in names:
-            continue
-        name = names.get(t["id"], "")
+    # タブに表示されていないターミナル（タブを閉じても残ったもの）は対象外
+    return [(t["id"], names[t["id"]]) for t in cmux("terminal", "list")
+            if t.get("running") and t["id"] != me and t["id"] in names]
+
+
+def find_codex(session=None):
+    for term_id, name in candidate_terminals():
         if session is not None and name != session:
             continue
         if session is None and name.startswith(SESSION_PREFIX):
             continue
-        if is_codex_terminal(t["id"]):
-            return t["id"]
+        if is_codex_terminal(term_id):
+            return term_id
     return None
 
 
@@ -116,10 +149,34 @@ def real_codex_bin():
 
 
 def screen_text(term_id):
+    if APP:
+        return cmux("read-screen", "--surface", term_id).get("text", "")
     return cmux("terminal", term_id, "screen", "read").get("text", "")
 
 
+def write(term_id, text):
+    """文字列をそのまま入力する。\r は Enter。"""
+    if APP:
+        cmux("send", "--surface", term_id, "--", text)
+    else:
+        cmux("terminal", term_id, "write", "--text", text)
+
+
+def paste_and_submit(term_id, message):
+    if APP:
+        # アプリ版の send は \n を Enter に変え ESC を落とすため、bracketed paste が使えない。
+        # terminal.paste は改行を含む文を 1 メッセージとして貼り付け、そのまま送信する。
+        cmux("rpc", "terminal.paste", json.dumps({"surface_id": term_id, "text": message}))
+        return
+    # bracketed paste で送ると改行を含む文も 1 メッセージとして入る
+    write(term_id, "\x1b[200~" + message + "\x1b[201~")
+    time.sleep(0.5)
+    write(term_id, "\r")
+
+
 def pane_of(term_id):
+    if APP:
+        return app_terminals().get(term_id, {}).get("pane")
     for tab in cmux("tab", "list"):
         if tab.get("content_id") == term_id:
             return tab.get("pane_id")
@@ -130,7 +187,10 @@ def open_terminal(name):
     """Codex を置くターミナルを開く。
     メイン: 自分 (Claude) のペインを右に分割した新しいペイン。
     ハーネス用: メイン Codex のペインにタブとして追加（メインが無ければ右に分割）。
-    いずれも失敗したら従来どおり新しいタブ。"""
+    いずれも失敗したら従来どおり新しいタブ。
+    戻り値はターミナル ID。"""
+    if APP:
+        return open_app_terminal(name)
     tries = []
     if name != MAIN_TAB:
         main = find_codex()
@@ -145,22 +205,51 @@ def open_terminal(name):
     last = None
     for args in tries:
         try:
-            return cmux(*args)["value"]
+            res = cmux(*args)["value"]
         except (RuntimeError, KeyError) as e:
             last = e
+            continue
+        try:
+            cmux("tab", res["tab_id"], "rename", "--name", name)
+        except RuntimeError:
+            pass
+        return res["terminal_id"]
+    raise RuntimeError(f"Codex 用のターミナルを開けませんでした: {last}")
+
+
+def open_app_terminal(name):
+    """アプリ版はタブを増やさず分割ペインで開く。
+    メイン: 自分 (Claude) の右。ハーネス用: メイン Codex の下（メインが無ければ自分の右）。
+    分割できないときだけ新しいタブ。"""
+    tries = []
+    if name != MAIN_TAB:
+        main = find_codex()
+        if main:
+            tries.append(("new-split", "down", "--surface", main, "--focus", "false"))
+    me = my_terminal()
+    if me:
+        tries.append(("new-split", "right", "--surface", me, "--focus", "false"))
+    tries.append(("new-surface", "--type", "terminal", "--focus", "false"))
+    last = None
+    for args in tries:
+        try:
+            term = cmux(*args)["surface_id"]
+        except (RuntimeError, KeyError) as e:
+            last = e
+            continue
+        try:
+            cmux("rename-tab", "--surface", term, name, json_out=False)
+        except RuntimeError:
+            pass
+        return term
     raise RuntimeError(f"Codex 用のターミナルを開けませんでした: {last}")
 
 
 def launch_codex(cwd, name=MAIN_TAB, codex_args=""):
-    res = open_terminal(name)
-    term, tab = res["terminal_id"], res["tab_id"]
-    try:
-        cmux("tab", tab, "rename", "--name", name)
-    except RuntimeError:
-        pass
+    term = open_terminal(name)
     time.sleep(1.0)  # シェルのプロンプトを待つ
     cmd = "cd " + shlex.quote(cwd) + " && " + " ".join([shlex.quote(real_codex_bin())] + shlex.split(codex_args))
-    cmux("terminal", term, "write", "--text", cmd + "\r")
+    write(term, cmd + "\r")
     deadline = time.time() + 90
     while time.time() < deadline:
         time.sleep(1.5)
@@ -230,28 +319,26 @@ def ask(message, timeout, launch, session=None, codex_args="", fresh=False):
     fcntl.flock(lock, fcntl.LOCK_EX)  # 同じタブへの依頼は順番に処理する
     term = ensure(launch, session, codex_args)
     if not wait_ready(term):
+        how = f"cmux read-screen --surface {term}" if APP else f"cmux terminal {term} screen read"
         raise RuntimeError("Codex が入力待ちになっていません（作業中か確認待ちの可能性）。"
-                           f"cmux terminal {term} screen read で確認してください")
+                           f"{how} で確認してください")
     if fresh:
-        cmux("terminal", term, "write", "--text", "/new")
+        write(term, "/new")
         time.sleep(0.5)
-        cmux("terminal", term, "write", "--text", "\r")
+        write(term, "\r")
         # Git リポジトリ内では「どこで新しい会話を始めるか」を聞かれるので既定 (1. 現在の worktree) を選ぶ
         deadline = time.time() + 15
         while time.time() < deadline:
             time.sleep(0.7)
             text = screen_text(term)
             if "Where should the new conversation run" in text:
-                cmux("terminal", term, "write", "--text", "\r")
+                write(term, "\r")
                 continue
             if any(m in text for m in READY_MARKERS):
                 break
         time.sleep(1.0)  # 新しい会話の初期化を待つ（直後の貼り付けが落ちないように）
     t0 = time.time()
-    # bracketed paste で送ると改行を含む文も 1 メッセージとして入る
-    cmux("terminal", term, "write", "--text", "\x1b[200~" + message + "\x1b[201~")
-    time.sleep(0.5)
-    cmux("terminal", term, "write", "--text", "\r")
+    paste_and_submit(term, message)
     print(wait_answer(message, t0, timeout))
 
 

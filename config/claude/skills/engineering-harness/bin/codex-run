@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 使い方: echo "指示" | bin/codex-run <astra|sol|terra|luna> [effort=medium] [sandbox=read-only|workspace-write]
 #
-# cmux の中で動いていれば、段階ごとの cmux タブ（例: codex-sol-medium-ro）の Codex に送り、回答を受け取る。
+# cmux（TUI / macOS アプリ）の中で動いていれば、段階ごとの cmux タブ（例: codex-sol-medium-ro）の Codex に送り、回答を受け取る。
 # タブはプロセスが残る限り使い回し、依頼ごとに /new で会話を新しくする。同じタブへの同時依頼は順番待ち。
 # cmux が無い（または codex-cmux スキルが無い）環境では、従来どおり codex exec で毎回起動する。
 # CODEX_RUN_MODE=exec を指定すると cmux があっても codex exec を使う。
@@ -18,8 +18,10 @@ EFFORT="${2:-medium}"; SANDBOX="${3:-read-only}"
 PROMPT="$(cat)"
 
 CODEX_CMUX="$HOME/.claude/skills/codex-cmux/scripts/codex-cmux"
-if [[ "${CODEX_RUN_MODE:-auto}" != "exec" && -n "${CMUX_TUI_SOCKET:-}" ]] \
-   && command -v cmux &> /dev/null && [[ -x "$CODEX_CMUX" ]]; then
+# macOS の cmux アプリでは cmux が PATH に無いことがあり、その場合は CMUX_BUNDLED_CLI_PATH を使う
+if [[ "${CODEX_RUN_MODE:-auto}" != "exec" && -x "$CODEX_CMUX" ]] \
+   && { { [[ -n "${CMUX_TUI_SOCKET:-}" ]] && command -v cmux &> /dev/null; } \
+        || { [[ -n "${CMUX_SOCKET_PATH:-}" ]] && { command -v cmux &> /dev/null || [[ -x "${CMUX_BUNDLED_CLI_PATH:-}" ]]; }; }; }; then
   case "$SANDBOX" in read-only) SB=ro ;; workspace-write) SB=rw ;; *) SB="$SANDBOX" ;; esac
   # パイプにすると exec がサブシェルで動き下の codex exec まで走るので、here-string で渡す
   exec "$CODEX_CMUX" ask --fresh \
